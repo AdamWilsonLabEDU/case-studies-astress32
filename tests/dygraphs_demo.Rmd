@@ -1,0 +1,98 @@
+---
+title: "dygraphs package"
+author: "Abby Stressinger"
+date: "2024-10-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# dygraphs demo
+
+
+This is a demo for using the dygraphs package in R. For more details on using dygraphs see <https://rstudio.github.io/dygraphs/index.html>.
+
+
+### Install Packages and Load Libraries
+
+```{r}
+#install.packages("dygraphs")
+library(dygraphs)
+library(RColorBrewer)
+library(tidyverse)
+```
+
+## Load Data
+
+In the examples below, I used temperature data obtained from NASA GISS Surface Temperature dataset (we used this in our second Case Study!). This data is available at <https://data.giss.nasa.gov/gistemp/>. As well, I downloaded Buffalo Monthly/Annual snowfall data, available from the National Weather Service NOAA website This data is available at <https://www.weather.gov/buf/buffaloSnow>.
+
+### Temperature Data
+```{r, include=FALSE}
+
+dataurl = "https://data.giss.nasa.gov/tmp/gistemp/STATIONS_v4/tmp_USW00014733_14_0_1/station.csv"
+
+httr::GET("https://data.giss.nasa.gov/cgi-bin/gistemp/stdata_show_v4.cgi?id=USW00014733&ds=14&dt=1")
+
+buffalo_temp <- read_csv(dataurl, na="999.90", skip=1, col_names = c("YEAR","JAN","FEB","MAR", "APR","MAY","JUN","JUL", "AUG","SEP","OCT","NOV",  
+                                        "DEC","DJF","MAM","JJA",  
+                                                           "SON","metANN"))
+buffalo_seasons <- buffalo_temp %>% 
+  select("YEAR", "DJF", "MAM", "JJA", "SON")
+
+buffalo_summer <- buffalo_temp %>%
+  select("YEAR", "JJA")
+```
+
+
+### Snowfall Data
+```{r, include=FALSE}
+buffalo_snow <- read_csv(file = "Buffalo_snowfall_years_corrected.csv")
+
+buffalo_annual_snowfall <- buffalo_snow %>% select("SEASON", "ANNUAL")
+
+```
+
+
+## Plot dygraphs for temperature data
+```{r}
+dygraph(buffalo_seasons, main = "Seasonal Temperatures in Buffalo, NY") %>%
+  dyAxis("y", label = "Temp (C)") %>%
+  dySeries("JJA", label = "Summer") %>%
+  dySeries("SON", label = "Autumn") %>%
+  dySeries("DJF", label = "Winter") %>%
+  dySeries("MAM", label = "Spring") %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(4, "Set2")) %>%
+  dyLegend(show = "follow") %>%
+  dyHighlight(highlightCircleSize = 3,
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE)
+```
+
+
+```{r}
+dygraph(buffalo_summer, 
+        main = "Mean Summer Temperatures in Buffalo, NY") %>% 
+  dyAxis("y", label = "Temp (C)") %>%
+  dyAxis("x", valueRange = c(1900,2024)) %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(1, "Set1")) %>%
+  dyRangeSelector(dateWindow = c("1950", "2024"))
+```
+
+
+## Plot dygraph for snowfall data
+```{r}
+
+dygraph(buffalo_annual_snowfall,
+        main = "Annual Snowfall in Buffalo, NY") %>% 
+  dyAxis("y", label = "Snowfall (inches)") %>%
+  dyAxis("x", valueRange = c(1900,2024)) %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(1, "Set3")) %>%
+  dyRangeSelector(dateWindow = c("1950", "2024")) %>%
+  dyEvent("1977", "Blizzard of 1977", labelLoc = "bottom") %>%
+  dyEvent("1985", "Six Pack Blizzard", labelLoc = "bottom") %>%
+  dyEvent("2006", "Blizzard of 2006", labelLoc = "bottom")
+```
+
+
