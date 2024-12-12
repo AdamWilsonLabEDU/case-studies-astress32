@@ -24,14 +24,14 @@ library(RColorBrewer)
   
   #Read in data using rast() function from terra package
   tmean <- rast("crudata.nc")
-  plot(tmean)
+  #plot(tmean)
 
 #Calculate the maximum temperature in each country 
   
   #calculate annual max for each pixel
    max_temp <- tmean %>%
                  max()
-  plot(max_temp)        
+  #plot(max_temp)        
   
   #Identify maximum temperature data points, overlay country polygons
       #within each country, calculating hottest pixel of hottest month
@@ -46,8 +46,6 @@ library(RColorBrewer)
                    fun = max,    #takes max value within each country
                    na.rm = TRUE, 
                    small = TRUE) #ensures small countries are in analysis
-  
-  plot(max_temp_by_country)  
   
   #Bind temp data column to world dataset 
     #Need world dataset before temp data so maintain geometry
