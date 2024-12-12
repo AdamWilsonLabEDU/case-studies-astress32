@@ -1,7 +1,27 @@
 ---
 title: "Case Study 07"
-author: Your Name
-date: August 1, 2020
+author: Abby Stressinger
+date: October 14, 2024
 output: github_document
 ---
- 
+Getting Help!
+Make a reproducible example:
+
+```{r}
+library(tidyverse)
+library(reprex)
+library(sf)
+
+library(spData)
+data(world)
+
+```
+
+
+```{r}
+ggplot(world,aes(x=gdpPercap, y=continent, color=continent))+
+   geom_density(alpha=0.5,color=F)
+
+#copied onto clipboard
+reprex(venue = "gh")
+```
