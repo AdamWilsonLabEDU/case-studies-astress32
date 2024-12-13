@@ -1,7 +1,94 @@
 ---
 title: "Case Study 11"
-author: Your Name
-date: August 1, 2020
+author: Abby Stressinger
+date: November 12, 2024
 output: github_document
 ---
+Create a 'Racial Dot Map' of Buffalo, NY
+---
+
+```{r}
+library(tidyverse)
+library(spData)
+library(sf)
+
+##New Packages
+#install.packages("mapview") #makes easy leaflet maps
+#install.packages("foreach")
+#install.packages("doParallel")
+#install.packages("tidycensus")
+
+library(mapview)
+library(foreach)
+library(doParallel)
+registerDoParallel(4)
+getDoParWorkers() #check registered cores
+```
+
+Download Census Data with API Key
+# go to  http://api.census.gov/data/key_signup.html and get a key, then run the line below with your key.  Don't push your key to github!
+
+Download block-level data on population by race in each census block in Buffalo.
+
+```{r}
+library(tidycensus)
+#census_api_key() #ADD IN MY API KEY HERE
+
+
+race_vars <- c(
+  "Total Population" = "P1_001N",
+  "White alone" = "P1_003N",
+  "Black or African American alone" = "P1_004N",
+  "American Indian and Alaska Native alone" = "P1_005N",
+  "Asian alone" = "P1_006N",
+  "Native Hawaiian and Other Pacific Islander alone" = "P1_007N",
+  "Some Other Race alone" = "P1_008N",
+  "Two or More Races" = "P1_009N"
+  )
+
+options(tigris_use_cache = TRUE)
+erie <- get_decennial(geography = "block", variables = race_vars, year=2020,
+                  state = "NY", county = "Erie County", geometry = TRUE,
+                  sumfile = "pl", cache_table=T)
+
+```
+
+
+Crop and create foreach loop 
+```{r}
+#Crop county-level data
+
+crop <-c(xmin=-78.9,xmax=-78.85,ymin=42.888,ymax=42.92) #define cropped area
+erie_2 <- st_crop(erie, crop)
+
+#Assign the unique variable classes to a variable
+
+race_variables <- unique(erie$variable) #know how many variable classes [8]
+race_variables
+
+#i = 1:8
+
+Dataset <- foreach(i = 1:8, .combine = 'rbind') %do%
+{erie_2 %>%
+  filter(variable == race_variables[i]) %>%
+st_sample(., type = "random", size = .$value) %>% 
+  st_as_sf() %>%
+  mutate(variable = race_variables[i])
+}
+
+  #period is placeholder for data being piped
+
+unique(Dataset$variable) #check variables
+```
  
+ Make leaflet map of dataset
+```{r}
+#mapview(Dataset[1,]) #test one point
+#?mapview()
+
+mapview(Dataset,
+        zcol = "variable",
+        cex = 0.5, #change size
+        lwd = 0) #delete outline of point
+
+```

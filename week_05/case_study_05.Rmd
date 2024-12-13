@@ -1,7 +1,59 @@
 ---
 title: "Case Study 05"
-author: Your Name
-date: August 1, 2020
+author: Abby Stressinger
+date: October 1, 2024
 output: github_document
 ---
+ ```{r}
+install.packages("sf")
+install.packages("spData")
+install.packages("units")
+```
+```{r}
+library(sf)
+library(spData)
+library(tidyverse)
+library(units)
+library(dplyr)
+
+#Load 'World' and 'US States' Data from spData package
+data(world)
+plot(world[1])
+  #need to plot not view since is shapefile
+
+data(us_states)
+plot(us_states[1])
+
+#Set Value for Albers Projection, Canada, and New York Dataset
+Albers <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+
+Canada <- world %>%
+  filter(name_long == "Canada") %>%
+  st_transform(crs = Albers) %>%
+  st_buffer(dist = 10000)
+
+  plot(Canada)
+
+New_York <- us_states %>%
+  filter(NAME == "New York") %>%
+  st_transform(crs = Albers) 
+
+#Create Border Object
+
+intersected <- st_intersection(New_York, Canada)
+
+Map <- ggplot(intersected) +
+      geom_sf(data = New_York, fill = "gray") +
+     geom_sf(data = intersected, fill = "red") +
+    labs(title = "New York Land within 10km")
+  
+  ggsave(Map, filename = "NY_Canada_Border_Map.png", width = 6, height = 5)
+  
+  #define fill color and where data comes from   
+  #define overlap
+ area_of_overlap <- st_area(intersected) %>%
+   set_units(km^2)
  
+  #area = 3495 km^2
+
+```
